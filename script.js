@@ -88,6 +88,7 @@
   // set to true for cross‑browser synchronisation. If you prefer local
   // storage only, set to false.
   const USE_REMOTE_STORAGE = true;
+  const API_BASE = '/api';
 
   /**
    * Call the remote authentication endpoint. When remote storage is
