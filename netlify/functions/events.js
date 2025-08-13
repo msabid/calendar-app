@@ -36,9 +36,10 @@
 
 */
 
-import { neon } from '@netlify/neon';
+import { neon, neonConfig } from '@neondatabase/serverless';
+neonConfig.fetchConnectionCache = true;
+const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
-const sql = neon();
 
 export async function handler(event) {
   const method = event.httpMethod;
