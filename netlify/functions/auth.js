@@ -27,9 +27,15 @@
   passwords and session tokens.
 */
 
-import { neon } from '@netlify/neon';
+import { neon, neonConfig } from '@neondatabase/serverless';
 
-const sql = neon();
+// Optional but recommended: enables a connection cache in serverless
+neonConfig.fetchConnectionCache = true;
+
+// Use your pooled connection string from Netlify env:
+const sql = neon(process.env.NETLIFY_DATABASE_URL);
+// If you prefer unpooled: const sql = neon(process.env.NETLIFY_DATABASE_URL_UNPOOLED);
+
 
 export async function handler(event) {
   // Only support POST requests
