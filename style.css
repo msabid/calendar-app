@@ -1,0 +1,622 @@
+/*
+  style.css
+
+  Provides the responsive layout and visual styling for the Adaptive
+  Calendar + Weather Dashboard. All dimensions and typography use
+  viewport units and CSS clamp() so that the dashboard scales
+  gracefully across devices. Colors are defined as CSS variables for
+  easy theming. See script.js for the data model and interaction logic.
+*/
+
+/* Root variables defining layout ratios, colors and type scale */
+:root {
+  /* Layout ratios */
+  --gapX: 2.5vw;            /* horizontal gap between columns */
+  --gapY: 2.5vh;            /* vertical gap between rows */
+  --leftWidth: 60%;         /* left column width */
+  --rightWidth: 37.5%;      /* right column width */
+  --weatherHeight: 23vh;    /* height of weather section */
+  --padX: clamp(16px, 2vw, 32px);
+  --padY: clamp(16px, 2vh, 32px);
+  /* Color palette for dark theme (default) */
+  --bg: #0F1216;
+  --cardBg: #181C20;
+  --textPrimary: #E8ECEF;
+  --textSecondary: #AEB6BE;
+  --accent: #3EA6FF;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --sunny: #FFD54F;
+  --rainy: #4FC3F7;
+  /* Light theme overrides can be applied by adding a .light class to body */
+}
+
+/*
+  Adjust the height of the weather bar when the device is in landscape
+  orientation. On smaller screens in landscape mode (such as 16:10 tablets),
+  the default height of 23vh can cause the forecast tiles to appear
+  oversized relative to the available vertical space. Reducing the height
+  in landscape helps maintain a balanced layout between the weather,
+  calendar and planner sections. Feel free to tweak this value to suit
+  your device's proportions.
+*/
+@media (orientation: landscape) {
+  :root {
+    --weatherHeight: 18vh;
+  }
+}
+
+body.light {
+  --bg: #FAFAFA;
+  --cardBg: #FFFFFF;
+  --textPrimary: #1B1B1B;
+  --textSecondary: #555555;
+  --accent: #1976D2;
+  --hairline: rgba(0, 0, 0, 0.1);
+  --sunny: #FFD54F;
+  --rainy: #4FC3F7;
+}
+
+/* Base element resets */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--textPrimary);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.dashboard-grid {
+  display: grid;
+  height: 100vh;
+  width: 100vw;
+  grid-template-columns: var(--leftWidth) var(--gapX) var(--rightWidth);
+  grid-template-rows: var(--weatherHeight) var(--gapY) 1fr;
+  box-sizing: border-box;
+  padding: var(--padY) var(--padX);
+}
+
+/* Card styling: shared container appearance */
+.card {
+  background: var(--cardBg);
+  border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Weather Section */
+.weather {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.weather-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+  height: 100%;
+}
+.location-row {
+  font-size: clamp(12px, 1.6vw, 20px);
+  color: var(--textSecondary);
+  margin-bottom: 0.4rem;
+  cursor: pointer;
+}
+.weather-location {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+}
+.weather-today {
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--hairline);
+  margin-right: clamp(8px, 1.2vw, 24px);
+  padding-right: clamp(8px, 1.2vw, 24px);
+  flex: 0 0 auto;
+}
+.weather-today .temp {
+  font-size: clamp(32px, 5vw, 80px);
+  font-weight: 700;
+  line-height: 1;
+  margin-right: 0.5rem;
+  color: var(--textPrimary);
+}
+.weather-today .meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.weather-today .day-name {
+  font-size: clamp(16px, 2vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.weather-today .summary {
+  font-size: clamp(12px, 1.6vw, 20px);
+  color: var(--textSecondary);
+  margin-top: 2px;
+}
+.weather-today .range {
+  font-size: clamp(12px, 1.6vw, 20px);
+  color: var(--textSecondary);
+  margin-top: 2px;
+}
+/* Location label under today's range. Slightly larger and distinct to help users know
+   where the forecast is coming from. */
+.weather-today .location {
+  font-size: clamp(12px, 1.6vw, 22px);
+  color: var(--textSecondary);
+  margin-top: 2px;
+  cursor: pointer; /* allow clicking to change location */
+  text-decoration: underline;
+}
+.weather-strip {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.2vw, 18px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1 1 auto;
+  padding-right: clamp(8px, 1.2vw, 24px);
+  -webkit-overflow-scrolling: touch;
+}
+.weather-day {
+  /* Forecast tiles naturally size to their content by default. The
+     first few tiles in each render may be stretched via inline style
+     to fill the available space. Remaining tiles keep this natural
+     width and can be scrolled horizontally. */
+  flex: 0 0 auto;
+  /* Tile widths scale with viewport width; min and max values help maintain
+     legibility while ensuring a reasonable number of tiles are visible. */
+  min-width: 100px;
+  max-width: 180px;
+  /* Maintain a consistent aspect ratio for forecast tiles. This helps
+     ensure the tile height scales with its width, which is especially
+     important on landscape tablets where vertical space is limited.
+     The explicit height clamp is retained as a fallback bound. */
+  aspect-ratio: 5 / 4;
+  height: clamp(56px, 8vh, 90px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.weather-day .dow {
+  font-size: clamp(12px, 1.4vw, 20px);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.weather-day .icon {
+  font-size: clamp(18px, 2.2vw, 32px);
+  margin-bottom: 2px;
+}
+.weather-day .temps {
+  font-size: clamp(12px, 1.4vw, 20px);
+  color: var(--textSecondary);
+}
+.last-updated {
+  font-size: clamp(10px, 1vw, 14px);
+  color: var(--textSecondary);
+  margin-top: 0.5rem;
+}
+
+/* Planner Section */
+.planner {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.planner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.planner-header span {
+  font-size: clamp(20px, 2.2vw, 40px);
+  font-weight: 600;
+}
+.today-btn {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: clamp(12px, 1.6vw, 20px);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.today-btn.small {
+  font-size: clamp(10px, 1.4vw, 18px);
+  padding: 0.3rem 0.6rem;
+}
+
+/* Planner header buttons: group add + today */
+.planner-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 16px);
+}
+
+/* Add event button: circular plus with accent color */
+.add-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--accent);
+  width: clamp(32px, 3vw, 48px);
+  height: clamp(32px, 3vw, 48px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(20px, 2vw, 32px);
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Sync calendars button */
+.sync-btn {
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: clamp(12px, 1.6vw, 20px);
+  cursor: pointer;
+  margin-left: 0.4rem;
+  line-height: 1;
+}
+.planner-all-day {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.planner-chip {
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: clamp(10px, 1.4vw, 18px);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  position: relative; /* allow overlay of action icons */
+}
+.planner-chip .icon {
+  font-size: clamp(12px, 1.8vw, 24px);
+}
+.planner-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+.planner-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.planner-item:last-child {
+  border-bottom: none;
+}
+.planner-time {
+  min-width: 4ch;
+  font-size: clamp(12px, 1.6vw, 22px);
+  color: var(--textSecondary);
+}
+.planner-text {
+  flex: 1;
+  font-size: clamp(14px, 1.8vw, 24px);
+  color: var(--textPrimary);
+  line-height: 1.3;
+
+/* Timed event action icons */
+.planner-item .actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+}
+.planner-item .actions span {
+  cursor: pointer;
+  font-size: clamp(12px, 1.6vw, 22px);
+  color: var(--textSecondary);
+  user-select: none;
+}
+.planner-item .actions span:hover {
+  color: var(--accent);
+}
+
+/* All‑day event action icons overlay */
+.planner-chip .chip-actions {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.3rem;
+  display: flex;
+  gap: 0.3rem;
+}
+.planner-chip .chip-actions span {
+  cursor: pointer;
+  font-size: clamp(10px, 1.4vw, 18px);
+  color: #fff;
+  user-select: none;
+}
+.planner-chip .chip-actions span:hover {
+  color: var(--cardBg);
+}
+}
+
+/* Calendar Section */
+.calendar {
+  grid-column: 1;
+  grid-row: 3;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.nav-btn {
+  width: clamp(32px, 3vw, 48px);
+  height: clamp(32px, 3vw, 48px);
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--textPrimary);
+  font-size: clamp(18px, 2vw, 30px);
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.month-year {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.month-name {
+  font-size: clamp(24px, 2.8vw, 48px);
+  font-weight: 700;
+}
+.year-name {
+  font-size: clamp(14px, 1.6vw, 24px);
+  margin-left: 0.4rem;
+}
+.year-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: clamp(14px, 1.6vw, 24px);
+  cursor: pointer;
+}
+.calendar-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 4px;
+}
+
+/* Day-of-week header row for calendar */
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 0.3rem;
+}
+.calendar-weekdays div {
+  font-size: clamp(12px, 1.4vw, 20px);
+  font-weight: 600;
+  color: var(--textSecondary);
+  text-align: right;
+  padding-right: 0.4rem;
+}
+.calendar-cell {
+  position: relative;
+  border-radius: 8px;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-end;
+  border: 1px solid var(--hairline);
+  cursor: pointer;
+}
+.calendar-cell.dim {
+  opacity: 0.5;
+}
+.calendar-cell.today {
+  background: var(--accent);
+  color: #fff;
+}
+.calendar-date {
+  font-size: clamp(14px, 2vw, 34px);
+  font-weight: 600;
+}
+.event-dots {
+  margin-top: auto;
+  display: flex;
+  gap: 2px;
+}
+.event-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Scrollbars for dark mode */
+.planner-list::-webkit-scrollbar {
+  width: 8px;
+}
+.planner-list::-webkit-scrollbar-track {
+  background: var(--cardBg);
+}
+.planner-list::-webkit-scrollbar-thumb {
+  background-color: var(--hairline);
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/*                          Authentication Styles                      */
+/* The auth container covers the entire screen and centers the
+   authentication forms when the user is not logged in. Each form
+   (login, signup, forgot password) is hidden by default except the
+   active one. Links within the forms toggle visibility via JS. */
+.auth-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--textPrimary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.auth-form {
+  display: none;
+  background: var(--cardBg);
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 480px;
+}
+.auth-form.active {
+  display: block;
+}
+.auth-form h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: clamp(24px, 3vw, 40px);
+}
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.8rem;
+  font-size: clamp(14px, 1.6vw, 24px);
+}
+.auth-form input {
+  padding: 0.6rem;
+  font-size: clamp(14px, 1.6vw, 24px);
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--cardBg);
+  color: var(--textPrimary);
+  margin-top: 0.2rem;
+}
+.auth-form button {
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: clamp(14px, 1.6vw, 24px);
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+.auth-form p {
+  margin-top: 0.6rem;
+  font-size: clamp(12px, 1.4vw, 20px);
+}
+.auth-form a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ */
+/*                            User Menu Styles                        */
+/* The user menu appears at the top right of the dashboard when a
+   user is logged in. The icon shows the first letter of the
+   username. Clicking the icon toggles a dropdown with settings
+   options. */
+.user-menu {
+  position: fixed;
+  /* Position the user icon in the top‑right corner to keep it within
+     view on both portrait and landscape screens. Placing it at the
+     top avoids overlap with the planner header and ensures the
+     drop‑down has room to expand downward. */
+  top: var(--padY);
+  right: var(--padX);
+  z-index: 150;
+  display: none; /* hidden until logged in */
+}
+.user-menu.open .user-dropdown {
+  display: flex;
+}
+.user-icon {
+  width: clamp(32px, 3vw, 48px);
+  height: clamp(32px, 3vw, 48px);
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: clamp(16px, 2vw, 28px);
+  font-weight: 600;
+  user-select: none;
+}
+/*
+   The user dropdown opens above the icon rather than below it when the
+   user icon is positioned near the bottom of the page. Without this
+   adjustment the dropdown can render off‑screen on short or landscape
+   devices, as reported by the user. By setting `bottom` instead of
+   `top` we make the dropdown slide upwards relative to the icon.
+*/
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem); /* open downward from the icon */
+  right: 0;
+  background: var(--cardBg);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  padding: 0.5rem;
+  min-width: 160px;
+  flex-direction: column;
+  display: none;
+}
+.user-dropdown button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--textPrimary);
+  font-size: clamp(12px, 1.6vw, 22px);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.user-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+  Adaptive Calendar + Weather Dashboard
+
+  This is the entry point for the dashboard application. The page uses a responsive
+  layout powered by CSS Grid. All sizing is defined using viewport units and the
+  CSS clamp() function to ensure the interface looks good on a variety of
+  screens. The JavaScript file script.js orchestrates data fetching and
+  interactivity. See style.css for visual definitions and layout ratios.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Adaptive Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Authentication container. This wrapper is displayed when the
+         user is not logged in. It contains login, sign up and
+         forgot password forms. The forms are toggled via JavaScript.
+         Once authenticated, this container is hidden and the main
+         dashboard is shown. -->
+    <div id="auth-container" class="auth-container">
+      <div class="auth-form login-form active" id="login-form">
+        <h2>Login</h2>
+        <label>
+          Username
+          <input id="login-username" type="text" autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input id="login-password" type="password" autocomplete="current-password" />
+        </label>
+        <button id="login-submit">Login</button>
+        <p>Don't have an account? <a id="show-signup" href="#">Sign up</a></p>
+        <p><a id="show-forgot" href="#">Forgot password?</a></p>
+      </div>
+      <div class="auth-form signup-form" id="signup-form">
+        <h2>Sign Up</h2>
+        <label>
+          Username
+          <input id="signup-username" type="text" autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input id="signup-password" type="password" autocomplete="new-password" />
+        </label>
+        <label>
+          Confirm Password
+          <input id="signup-confirm" type="password" autocomplete="new-password" />
+        </label>
+        <button id="signup-submit">Create Account</button>
+        <p>Already have an account? <a id="show-login" href="#">Login</a></p>
+      </div>
+      <div class="auth-form forgot-form" id="forgot-form">
+        <h2>Reset Password</h2>
+        <label>
+          Username
+          <input id="forgot-username" type="text" autocomplete="username" />
+        </label>
+        <label>
+          New Password
+          <input id="forgot-password" type="password" autocomplete="new-password" />
+        </label>
+        <label>
+          Confirm Password
+          <input id="forgot-confirm" type="password" autocomplete="new-password" />
+        </label>
+        <button id="forgot-submit">Reset Password</button>
+        <p><a id="forgot-back-login" href="#">Back to login</a></p>
+      </div>
+    </div>
+
+    <!-- User menu for logged in users. Contains a user icon that
+         toggles a drop‑down menu for changing theme, changing
+         password and logging out. This menu is hidden until a
+         user logs in. -->
+    <div id="user-menu" class="user-menu">
+      <div id="user-icon" class="user-icon">U</div>
+      <div id="user-dropdown" class="user-dropdown">
+        <button id="settings-theme">Toggle Theme</button>
+        <button id="settings-password">Change Password</button>
+        <button id="settings-logout">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main dashboard container. Hidden until the user is authenticated. -->
+    <div id="dashboard" class="dashboard-grid">
+      <!-- Weather Section: a single row containing today's weather and a scrollable forecast strip -->
+      <section id="weather" class="weather card">
+        <!-- Location row: show current location and allow editing -->
+        <div class="location-row">
+          <span id="weather-location" class="weather-location">Kingston, ON</span>
+        </div>
+        <div class="weather-row">
+          <div class="weather-today">
+            <div class="temp" id="today-temp"></div>
+            <div class="meta">
+              <div id="today-day" class="day-name"></div>
+              <div id="today-desc" class="summary"></div>
+              <div id="today-range" class="range"></div>
+            </div>
+          </div>
+          <div class="weather-strip" id="weather-strip"></div>
+        </div>
+        <div class="last-updated" id="weather-updated"></div>
+      </section>
+
+      <!-- Daily Planner: full-height list of events for the selected date -->
+      <section id="planner" class="planner card">
+        <div class="planner-header" id="planner-header">
+          <span id="planner-date"></span>
+          <div class="planner-header-buttons">
+            <!-- Add event button (use + sign to indicate adding) -->
+            <button id="planner-add" class="add-btn" title="Add event">+</button>
+            <button id="planner-today" class="today-btn">Today</button>
+          </div>
+        </div>
+        <div class="planner-all-day" id="planner-all-day"></div>
+        <div class="planner-list" id="planner-list"></div>
+      </section>
+
+      <!-- Monthly Calendar: large calendar grid with navigation -->
+      <section id="calendar" class="calendar card">
+        <div class="calendar-header">
+          <button id="prev-month" class="nav-btn">&#x2039;</button>
+          <div class="month-year">
+            <span id="calendar-month" class="month-name"></span>
+            <span id="calendar-year" class="year-name"></span>
+            <button id="calendar-year-toggle" class="year-toggle">&#x25BC;</button>
+            <button id="calendar-sync" class="sync-btn">Sync</button>
+          </div>
+          <button id="next-month" class="nav-btn">&#x203A;</button>
+          <button id="calendar-today" class="today-btn small">Today</button>
+        </div>
+        <!-- Day-of-week headers -->
+        <div class="calendar-weekdays" id="calendar-weekdays"></div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </section>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+/*
+  netlify.toml
+
+  Configuration file for Netlify deployments. This file specifies
+  the directory containing serverless functions (Netlify Functions)
+  that handle authentication and event persistence using a Neon
+  PostgreSQL database. When deploying to Netlify, ensure that
+  the environment variables `NETLIFY_DATABASE_URL` (or
+  `NETLIFY_DATABASE_URL_UNPOOLED`) are set. See the README in
+  adaptive_dashboard for instructions on enabling remote storage.
+*/
+
+[functions]
+  directory = "netlify/functions"
