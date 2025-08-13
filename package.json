@@ -1,0 +1,11 @@
+{
+  "name": "calendar-app",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/neon": "^0.0.6"
+  }
+}
